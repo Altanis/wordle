@@ -13,6 +13,13 @@ input {
     font-size: 80px;
     font-weight: bold;
     text-transform: uppercase;
+    box-shadow: none;
+}
+
+#hints {
+    right: 0;
+    bottom: 0;
+    position: fixed;
 }
 
 .row {
@@ -21,7 +28,7 @@ input {
     justify-content: center;
 }
 
-#stats {
+#stats, #hints, #options {
     background-color: transparent;
     background-repeat: no-repeat;
     border: none;

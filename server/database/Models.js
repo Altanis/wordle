@@ -7,6 +7,7 @@ const Users = mongoose.model('User', new mongoose.Schema({
         guesses: [String],
         results: [String],
         completed: Boolean,
+        usedHint: Boolean,
     }],
     correct: Number,
     incorrect: Number,

@@ -53,12 +53,64 @@ GameRouter.route('/start')
     
         common.shuffle();
         console.log(common[0]);
-        user.words.push({ word: common[0], guesses: [], results: [], completed: false });
+        user.words.push({ word: common[0], guesses: [], results: [], completed: false, usedHint: false, });
     
+        user.markModified('words');
         user.save()
             .then(() => {
                 response.json({
                     status: 'SUCCESS',
+                });
+            })
+            .catch(error => {
+                response.status(500).json({
+                    status: 'ERROR',
+                    data: { message: 'An internal error occured when starting a game. Please retry later.', dev_error: error, },
+                });
+            });
+    });
+
+GameRouter.route('/hint')
+    .post(async (request, response) => {
+        const users = await Users.find();
+        const { id } = request.body;
+    
+        if (typeof id !== 'string') return response.send('no botting.');
+        
+        const user = users.find(user => user.id === id);
+        if (!user) return response.status(401).json({ status: 'ERROR', data: { message: 'Invalid ID.' } });  
+
+        if (!user.words[user.words.length - 1]) return response.status(400).json({ status: 'ERROR', data: { message: 'The current game has already been completed. Start a new game by reloading to continue playing.' } });
+
+        let { word, guesses, results, completed, usedHint } = user.words[user.words.length - 1];
+
+        if (completed) return response.status(400).json({ status: 'ERROR', data: { message: 'The current game has already been completed. Start a new game by reloading to continue playing.' } });
+        if (usedHint) return response.status(400).json({ status: 'ERROR', data: { message: 'You already used a hint for this game.' } });
+    
+        let greenPositions = [];
+        results.forEach(result => {
+            for (let i = 0; i < result.length; i++) {
+                if (result[i] === 'c') greenPositions.push(i);
+            }
+        });
+
+        let hint = { letter: null, position: null, };
+
+        word.split('').forEach((letter, index) => {
+            if (greenPositions.includes(index) || hint.letter) return;
+            hint = { letter, position: index };
+        });
+
+        usedHint = true;
+
+        user.words[user.words.length - 1] = { word, guesses, results, completed, usedHint };
+
+        user.markModified('words');
+        user.save()
+            .then(() => {                        
+                response.json({
+                    status: 'SUCCESS',
+                    data: { hint },
                 });
             })
             .catch(error => {
@@ -82,7 +134,7 @@ GameRouter.route('/guess')
         if (!user.words[user.words.length - 1]) return response.status(400).json({ status: 'ERROR', data: { message: 'The current game has already been completed. Start a new game by reloading to continue playing.' } });
         if (!common.includes(guess) && !all.includes(guess)) return response.status(400).json({ status: 'ERROR', data: { message: 'Invalid word.' } });
     
-        let { word, guesses, results, completed } = user.words[user.words.length - 1];
+        let { word, guesses, results, completed, usedHint } = user.words[user.words.length - 1];
         if (completed) return response.status(400).json({ status: 'ERROR', data: { message: 'The current game has already been completed. Start a new game by reloading to continue playing.' } });
     
         guesses.push(guess);
@@ -134,8 +186,9 @@ GameRouter.route('/guess')
             user.incorrect++;
         }
     
-        user.words[user.words.length - 1] = { word, guesses, results, completed };
+        user.words[user.words.length - 1] = { word, guesses, results, completed, usedHint };
 
+        user.markModified('words');
         user.save()
             .then(() => {
                 response.json({ status: 'SUCCESS', data, });

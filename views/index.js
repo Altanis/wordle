@@ -2,6 +2,10 @@ class TileEditor {
     constructor() {
         this.current = 'g-1-1';
         this.results = [];
+        this.hints = {
+            letter: null,
+            position: null,
+        };
         this.word = null;
     }
 
@@ -50,6 +54,10 @@ class TileEditor {
     }
 
     _move(type) {
+        for (let i = 1; i < 6; i++) {
+            document.getElementById(`g-${this.current.split('-')[1]}-${i}`).style.backgroundColor = null;
+        }
+
         switch (type) {
             case 'forward': {
                 let [name, row, column] = this.current.split('-');
@@ -94,6 +102,10 @@ class TileEditor {
 
     type(letter) {
         document.getElementById(this.current).value = letter;
+        for (let i = 1; i < 6; i++) {
+            document.getElementById(`g-${this.current.split('-')[1]}-${i}`).style.backgroundColor = null;
+        }
+
         this._move('forward');
     }
 
@@ -163,11 +175,89 @@ class TileEditor {
             this.next();
         }
     }
+
+    hint(letter = this.hints.letter, position = this.hints.position) {
+        const row = this.current.split('-')[1];
+
+        this.current = `g-${row}-${position + 1}`;
+        document.getElementById(this.current).style.backgroundColor = '#6aaa64';
+        document.getElementById(this.current).value = letter;
+
+        this.hints = { letter, position };
+        this.alert('correct', 'A magical hint has been gifted to you! Use it wisely.');
+    }
 }
 
 const TileSystem = new TileEditor();
 
+window.onload = () => {
+    if (localStorage.darkMode) { 
+        document.body.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        document.querySelectorAll('.modal-content').forEach(element => { element.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'; element.style.color = '#FFFFFF'; });
+
+        document.querySelectorAll('h1').forEach(element => element.style.color = '#FFFFFF');
+        document.querySelectorAll('button').forEach(element => element.style.color = '#FFFFFF');
+    }
+};
+
+const triggerEvent = (type) => {
+    switch (type) {
+        case 'darkMode': {
+            if (localStorage.darkMode) {
+                delete localStorage.darkMode;
+                document.body.style.backgroundColor = '#FFFFFF';
+                document.querySelectorAll('.modal-content').forEach(element => { element.style.backgroundColor = '#FFFFFF'; element.style.color = '#000000'; });
+
+                document.querySelectorAll('h1').forEach(element => element.style.color = '#000000');
+                document.querySelectorAll('button').forEach(element => element.style.color = '#000000');
+            } else {
+                localStorage.darkMode = true;
+                document.body.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'; 
+                document.querySelectorAll('.modal-content').forEach(element => { element.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'; element.style.color = '#FFFFFF'; });
+
+                document.querySelectorAll('h1').forEach(element => element.style.color = '#FFFFFF');
+                document.querySelectorAll('button').forEach(element => element.style.color = '#FFFFFF');
+            }
+            break;
+        }
+    }
+};
+
+const getHints = async () => {
+    event?.target?.blur();
+    
+    if (!TileSystem.hints.letter) {
+        const hint = await fetch('http://localhost:3000/game/hint', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: localStorage.id }),
+        }).then(r => r.json());
+    
+        if (hint.status === 'ERROR') TileSystem.alert('wrong', hint.data.message);
+        else {
+            const { letter, position } = hint.data.hint;
+            TileSystem.hint(letter, position);
+        }
+    } else {
+        TileSystem.hint();
+    }
+};
+
+const getOptions = () => {
+    event?.target?.blur();
+
+    document.querySelector('.options-modal-body').innerHTML = `
+    <label for="screenshots" id="screenshots_label">
+        Dark Mode
+    </label> 
+    <input type="checkbox" onclick="triggerEvent('darkMode')" id="screenshots" ${localStorage.darkMode ? 'checked': ''}>`;
+
+    $('#options-modal').modal();
+};
+
 const getStats = async (finishedGame) => {
+    event?.target?.blur();
+
     const stats = await fetch('http://localhost:3000/user/stats', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
