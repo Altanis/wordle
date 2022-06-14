@@ -8,9 +8,9 @@ Progress:
     - [x] Create serversided functions (initializing a game, guessing words, getting results).
     - [x] Create clientsided functions (adding elements on DOM and making them functional).
     - [x] Statistics, to see how well you've fared in your wordles.
-- [ ] Options Menu
-    - [ ] Create toggleable dark mode.
-    - [ ] Add hint system. 
+- [x] Options Menu
+    - [x] Create toggleable dark mode.
+    - [x] Add hint system. 
 - [ ] Multiplayer Battles
     - To be elaborated on further in the near future.
 
