@@ -1,0 +1,33 @@
+body {
+    font-family: 'Ubuntu';
+    overflow: hidden;
+}
+
+input {
+    text-align: center;
+}
+
+.box {
+    width: 100px;
+    height: 100px;
+    font-size: 80px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#stats {
+    background-color: transparent;
+    background-repeat: no-repeat;
+    border: none;
+    cursor: pointer;
+    overflow: hidden;
+    outline: none;
+    color: black;
+    font-weight: bold;
+}
