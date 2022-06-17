@@ -2,15 +2,29 @@ const mongoose = require('mongoose');
 
 const Users = mongoose.model('User', new mongoose.Schema({
     id: String,
-    words: [{
-        word: String,
-        guesses: [String],
-        results: [String],
-        completed: Boolean,
-        usedHint: Boolean,
-    }],
-    correct: Number,
-    incorrect: Number,
+    name: String,
+    stats: {
+        singleplayer: {
+            correct: Number,
+            incorrect: Number,
+        },
+        multiplayer: {
+            correct: Number,
+            incorrect: Number,
+        }
+    },
+    games: [String]
 }));
 
-module.exports = { Users };
+const Games = mongoose.model('Game', new mongoose.Schema({
+    id: String,
+    type: String,
+    players: [String],
+    word: String,
+    guesses: mongoose.Schema.Types.Mixed,
+    results: mongoose.Schema.Types.Mixed,
+    active: Boolean,
+    usedHint: mongoose.Schema.Types.Mixed,
+}, { minimize: false }));
+
+module.exports = { Users, Games };

@@ -154,7 +154,7 @@ class TileEditor {
         fetch('http://localhost:3000/game/start', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', },
-            body: JSON.stringify({ id: localStorage.id }),
+            body: JSON.stringify({ id: localStorage.id, type: 'singleplayer' }),
         });
     }
 
@@ -280,8 +280,7 @@ const getStats = async (finishedGame) => {
 
 (async () => {
     if (!localStorage.id) {
-        const data = await fetch('http://localhost:3000/init-session').then(r => r.json());
-        localStorage.id = data.data.id;
+        window.location.href = '/';
     }
     
     const prevGame = await fetch('http://localhost:3000/game/resume', {
@@ -296,7 +295,7 @@ const getStats = async (finishedGame) => {
         fetch('http://localhost:3000/game/start', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', },
-            body: JSON.stringify({ id: localStorage.id }),
+            body: JSON.stringify({ id: localStorage.id, type: 'singleplayer' }),
         });
     }
 

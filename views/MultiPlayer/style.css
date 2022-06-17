@@ -3,7 +3,7 @@ body {
     overflow: hidden;
 }
 
-#options {
+#menu {
     left: 0;
     bottom: 0;
     position: fixed;

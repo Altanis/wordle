@@ -24,15 +24,33 @@ app.get('/singleplayer', (_request, response) => {
     response.sendFile('\\SinglePlayer\\index.html', { root: `${__dirname.replace('\\server', '')}\\views` });
 });
 
-app.get('/init-session', (_request, response) => {
+app.get('/multiplayer', (_request, response) => {
+    response.sendFile('\\MultiPlayer\\index.html', { root: `${__dirname.replace('\\server', '')}\\views` });
+});
+
+app.post('/init-session', (request, response) => {
     // Anti-botting system will occur later.
-    
+    const { name } = request.body;
+    if (typeof name !== 'string') return response.send('no botting.');
+    if (name.length < 1 || name.length > 16) return response.status(400).send('Please keep your name in between 1-16 characters.');
+
+    console.log(name);
+
     const id = require('crypto').randomBytes(64).toString('hex');
     const user = new Users({
         id,
-        words: [],
-        correct: 0,
-        incorrect: 0,
+        name,
+        stats: {
+            singleplayer: {
+                correct: 0,
+                incorrect: 0,
+            },
+            multiplayer: {
+                correct: 0,
+                incorrect: 0,
+            }
+        },
+        games: [],
     });
 
     user.save()
@@ -55,32 +73,27 @@ app.post('/user/stats', async (request, response) => {
     const { id, type } = request.body;
 
     if (typeof id != 'string') return response.send('no botting.');
+    if (!['singleplayer', 'multiplayer'].includes(type)) return response.send('no botting.');
 
-    if (type === 'singleplayer') {
-        const user = users.find(user => user.id === id);
-        if (!user) return response.status(401).json({ status: 'ERROR', data: { message: 'Invalid ID.' } });
-    
-        let correct = user.correct, incorrect = user.incorrect;
-        let win_percentage;
-    
-        if (correct == 0)  {
-            win_percentage = '0%';
-        } else if (incorrect == 0) {
-            win_percentage = correct == 0 ? '0%' : '100%';
-        } else {
-            win_percentage = `${Math.round((correct / (correct + incorrect)) * 100)}%`;
-        }
-    
-        response.json({
-            correct,
-            incorrect,
-            win_percentage,
-        });
-    } else if (type === 'multiplayer') {
+    const user = users.find(user => user.id === id);
+    if (!user) return response.status(401).json({ status: 'ERROR', data: { message: 'Invalid ID.' } });
 
+    let correct = user.stats[type].correct, incorrect = user.stats[type].incorrect;
+    let win_percentage;
+
+    if (correct == 0)  {
+        win_percentage = '0%';
+    } else if (incorrect == 0) {
+        win_percentage = correct == 0 ? '0%' : '100%';
     } else {
-        response.send('no botting.');
+        win_percentage = `${Math.round((correct / (correct + incorrect)) * 100)}%`;
     }
+
+    response.json({
+        correct,
+        incorrect,
+        win_percentage,
+    });
 });
 
 app.listen(process.env.PORT || 3000, function() {
