@@ -14,11 +14,14 @@ const { GameRouter } = require('./routes/Game.js');
 
 app.use(Express.json());
 app.use(Express.static(`${__dirname.replace('\\server', '')}\\views`));
-
 app.use('/game', GameRouter);
 
 app.get('/', (_request, response) => {
-    response.sendFile('index.html');
+    response.sendFile('\\Menu\\index.html', { root: `${__dirname.replace('\\server', '')}\\views` });
+});
+
+app.get('/singleplayer', (_request, response) => {
+    response.sendFile('\\SinglePlayer\\index.html', { root: `${__dirname.replace('\\server', '')}\\views` });
 });
 
 app.get('/init-session', (_request, response) => {
@@ -49,29 +52,35 @@ app.get('/init-session', (_request, response) => {
 
 app.post('/user/stats', async (request, response) => {
     const users = await Users.find();
-    const { id } = request.body;
+    const { id, type } = request.body;
 
     if (typeof id != 'string') return response.send('no botting.');
 
-    const user = users.find(user => user.id === id);
-    if (!user) return response.status(401).json({ status: 'ERROR', data: { message: 'Invalid ID.' } });
+    if (type === 'singleplayer') {
+        const user = users.find(user => user.id === id);
+        if (!user) return response.status(401).json({ status: 'ERROR', data: { message: 'Invalid ID.' } });
+    
+        let correct = user.correct, incorrect = user.incorrect;
+        let win_percentage;
+    
+        if (correct == 0)  {
+            win_percentage = '0%';
+        } else if (incorrect == 0) {
+            win_percentage = correct == 0 ? '0%' : '100%';
+        } else {
+            win_percentage = `${Math.round((correct / (correct + incorrect)) * 100)}%`;
+        }
+    
+        response.json({
+            correct,
+            incorrect,
+            win_percentage,
+        });
+    } else if (type === 'multiplayer') {
 
-    let correct = user.correct, incorrect = user.incorrect;
-    let win_percentage;
-
-    if (correct == 0)  {
-        win_percentage = '0%';
-    } else if (incorrect == 0) {
-        win_percentage = correct == 0 ? '0%' : '100%';
     } else {
-        win_percentage = `${Math.round((correct / (correct + incorrect)) * 100)}%`;
+        response.send('no botting.');
     }
-
-    response.json({
-        correct,
-        incorrect,
-        win_percentage,
-    });
 });
 
 app.listen(process.env.PORT || 3000, function() {

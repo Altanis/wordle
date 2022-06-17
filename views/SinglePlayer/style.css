@@ -22,19 +22,14 @@ input {
     position: fixed;
 }
 
+#menu {
+    left: 0;
+    bottom: 0;
+    position: fixed;
+}
+
 .row {
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-#stats, #hints, #options {
-    background-color: transparent;
-    background-repeat: no-repeat;
-    border: none;
-    cursor: pointer;
-    overflow: hidden;
-    outline: none;
-    color: black;
-    font-weight: bold;
 }

@@ -261,7 +261,7 @@ const getStats = async (finishedGame) => {
     const stats = await fetch('http://localhost:3000/user/stats', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: localStorage.id }),
+        body: JSON.stringify({ id: localStorage.id, type: 'singleplayer' }),
     }).then(r => r.json());
 
     document.querySelector('.modal-body').innerHTML = `
