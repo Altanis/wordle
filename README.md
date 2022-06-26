@@ -11,7 +11,13 @@ Progress:
 - [x] Options Menu
     - [x] Create toggleable dark mode.
     - [x] Add hint system. 
-- [ ] Multiplayer Battles
-    - To be elaborated on further in the near future.
+- [x] Multiplayer Battles
+    - [x] Create lobby system.
+    - [x] Allow a player to join.
+    - [x] Create different statistics modal for Multiplayer.
+    - [ ] Cancel button.
+    - [ ] Options (public/private, invite code, etc).
+
+**Awaiting new suggestions.**
 
 ***Progress is variable and may change at any moment.***
