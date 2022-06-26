@@ -8,8 +8,13 @@ mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('Connection to MongoDB has been established.'))
     .catch(error => console.error('Could not connect to MongoDB:', error));
 
-const { Users } = require('./database/Models');
+const server = app.listen(process.env.PORT || 3000, function() {
+    console.log(`Wordle Server is listening on port ${process.env.PORT || 3000}!`);
+});
 
+module.exports = { server };
+
+const { Users } = require('./database/Models');
 const { GameRouter } = require('./routes/Game.js');
 
 app.use(Express.json());
@@ -28,13 +33,14 @@ app.get('/multiplayer', (_request, response) => {
     response.sendFile('\\MultiPlayer\\index.html', { root: `${__dirname.replace('\\server', '')}\\views` });
 });
 
-app.post('/init-session', (request, response) => {
+app.post('/init-session', async (request, response) => {
     // Anti-botting system will occur later.
     const { name } = request.body;
     if (typeof name !== 'string') return response.send('no botting.');
-    if (name.length < 1 || name.length > 16) return response.status(400).send('Please keep your name in between 1-16 characters.');
+    if (name.length < 1 || name.length > 16) return response.status(400).json({ status: 'ERROR', data: { message: 'Please keep your name in between 1-16 characters.' } });
 
-    console.log(name);
+    const u = await Users.findOne({ name, });
+    if (u) return response.status(400).send({ status: 'ERROR', data: { message: 'Username is taken.' } });
 
     const id = require('crypto').randomBytes(64).toString('hex');
     const user = new Users({
@@ -94,8 +100,4 @@ app.post('/user/stats', async (request, response) => {
         incorrect,
         win_percentage,
     });
-});
-
-app.listen(process.env.PORT || 3000, function() {
-    console.log(`Wordle Server is listening on port ${process.env.PORT || 3000}!`);
 });

@@ -25,6 +25,8 @@ const Games = mongoose.model('Game', new mongoose.Schema({
     results: mongoose.Schema.Types.Mixed,
     active: Boolean,
     usedHint: mongoose.Schema.Types.Mixed,
+    filled: Boolean,
+    winner: String,
 }, { minimize: false }));
 
 module.exports = { Users, Games };

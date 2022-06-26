@@ -7,6 +7,8 @@ class TileEditor {
             position: null,
         };
         this.word = null;
+
+        document.getElementById(this.current).classList.add('current');
     }
 
     alert(type, message) {
@@ -91,10 +93,10 @@ class TileEditor {
     }
 
     loadGame({ guesses, results }) {
-        guesses.forEach((guess, index) => {
+        guesses.player.forEach((guess, index) => {
             guess.split('').forEach(letter => { this.type(letter) });
             this.handle({
-                result: results[index],
+                result: results.player[index],
                 finished: false,
             });
         });
@@ -188,15 +190,26 @@ class TileEditor {
     }
 }
 
-const TileSystem = new TileEditor();
+const _TileSystem = new TileEditor();
+const TileSystem = new Proxy(_TileSystem, {
+    set(target, key, value) {
+        if (key === 'current') {
+            const oldValue = target[key];
+            document.getElementById(oldValue).classList.remove('current');
+            document.getElementById(value).classList.add('current');
+        }
+
+        target[key] = value;
+        return true;
+    }
+}); 
 
 window.onload = () => {
     if (localStorage.darkMode) { 
         document.body.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
         document.querySelectorAll('.modal-content').forEach(element => { element.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'; element.style.color = '#FFFFFF'; });
 
-        document.querySelectorAll('h1').forEach(element => element.style.color = '#FFFFFF');
-        document.querySelectorAll('button').forEach(element => element.style.color = '#FFFFFF');
+        document.querySelector('body').style.color = '#FFFFFF';
     }
 };
 
@@ -212,11 +225,10 @@ const triggerEvent = (type) => {
                 document.querySelectorAll('button').forEach(element => element.style.color = '#000000');
             } else {
                 localStorage.darkMode = true;
-                document.body.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'; 
+                document.body.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
                 document.querySelectorAll('.modal-content').forEach(element => { element.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'; element.style.color = '#FFFFFF'; });
-
-                document.querySelectorAll('h1').forEach(element => element.style.color = '#FFFFFF');
-                document.querySelectorAll('button').forEach(element => element.style.color = '#FFFFFF');
+        
+                document.querySelector('body').style.color = '#FFFFFF';
             }
             break;
         }
@@ -286,10 +298,10 @@ const getStats = async (finishedGame) => {
     const prevGame = await fetch('http://localhost:3000/game/resume', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: localStorage.id }),
+        body: JSON.stringify({ id: localStorage.id, type: 'singleplayer' }),
     }).then(r => r.json());
 
-    if (prevGame.data.guesses.length) {
+    if (prevGame.data.guesses.player.length) {
         TileSystem.loadGame(prevGame.data);
     } else {
         fetch('http://localhost:3000/game/start', {
@@ -303,7 +315,7 @@ const getStats = async (finishedGame) => {
         if (event.keyCode == 8) {
             TileSystem.backspace();
         } else if (event.keyCode == 13) {
-            const guess = TileSystem.getWord();
+            const guess = TileSystem.getWord().toLowerCase();
             if (guess.length !== 5) return;
             
             const result = await fetch('http://localhost:3000/game/guess', {
